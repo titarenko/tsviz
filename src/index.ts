@@ -66,7 +66,7 @@ function transform (source: ts.SourceFile, node: ts.Node): Entity[] {
   return entities.concat(...node.getChildren(source).map(c => transform(source, c)))
 }
 
-function transformInterfaceDeclaration (source: ts.SourceFile, node: ts.InterfaceDeclaration) {
+function transformInterfaceDeclaration (source: ts.SourceFile, node: ts.InterfaceDeclaration): Entity {
   return {
     name: node.name.getText(source),
     properties: node.members
@@ -85,7 +85,7 @@ function transformInterfaceDeclaration (source: ts.SourceFile, node: ts.Interfac
   }
 }
 
-function transformTypeAliasDeclaration (source: ts.SourceFile, node: ts.Node) {
+function transformTypeAliasDeclaration (source: ts.SourceFile, node: ts.Node): Entity {
   const children = node.getChildren(source)
   const identifier = <ts.Identifier>children.find(c => c.kind === ts.SyntaxKind.Identifier)
   const union = <ts.UnionTypeNode>children.find(c => c.kind === ts.SyntaxKind.UnionType)
