@@ -1,0 +1,20 @@
+{
+  "name": "tsviz",
+  "version": "1.0.0",
+  "description": "Typescript source code visualization using UML+ diagrams",
+  "main": "index.js",
+  "dependencies": {
+    "glob": "^7.1.3",
+    "typescript": "^3.2.2"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.1",
+    "@types/node": "^10.12.18",
+    "ts-node": "^7.0.1"
+  },
+  "scripts": {
+    "start": "ts-node src"
+  },
+  "author": "Constantin Titarenko",
+  "license": "MIT"
+}
