@@ -38,17 +38,18 @@ enum EntityType {
 
 const search = promisify(glob)
 
-run(process.argv[2])
+run(process.argv.slice(2, -1))
   .then(dot => {
     console.log(dot)
-    const { status, stdout, stderr } = spawnSync('dot', ['-Tpng:cairo', '-o', process.argv[3]], { input: dot })
+    const { status, stdout, stderr } = spawnSync('dot', ['-Tpng:cairo', '-o', process.argv[process.argv.length - 1]], { input: dot })
     console.log(status, stdout.toString(), stderr.toString())
   })
   .catch(console.error)
   .then(() => process.exit())
 
-async function run (pattern: string): Promise<string> {
-  const filenames = await search(pattern)
+async function run (patterns: string[]): Promise<string> {
+  const filenames = (await Promise.all(patterns.map(p => search(p))))
+    .reduce((result: string[], a: string[]) => result.concat(a), [])
   const entities = filenames
     .map(parse)
     .reduce((result: Entity[], source) => result.concat(transform(source, source)), [])
