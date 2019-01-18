@@ -38,7 +38,7 @@ async function run (pattern: string): Promise<string> {
   const filenames = await search(pattern)
   const entities = filenames
     .map(parse)
-    .reduce((result, source) => result.concat(transform(source, source)), [])
+    .reduce<Entity[]>((result, source) => result.concat(transform(source, source)), [])
   return render(entities)
 }
 
@@ -66,26 +66,27 @@ function transform (source: ts.SourceFile, node: ts.Node): Entity[] {
   return entities.concat(...node.getChildren(source).map(c => transform(source, c)))
 }
 
-function transformInterfaceDeclaration (source: ts.SourceFile, node: ts.InterfaceDeclaration): Entity {
+function transformInterfaceDeclaration (source: ts.SourceFile, node: ts.InterfaceDeclaration): Entity | void {
   return {
     name: node.name.getText(source),
     properties: node.members
       .filter(m => m.kind === ts.SyntaxKind.PropertySignature)
       .map(m => <ts.PropertySignature>m)
-      .map(m => ({
+      .map(m => m.type && ({
         name: m.name.getText(source),
         type: m.type.getText(source),
         nullable: m.questionToken != null,
-      })),
-    includes: node.heritageClauses && node.heritageClauses
-      .reduce(
-        (result, c) => result.concat(c.types.map(t => t.getText(source))),
-        []
-      )
+      }))
+      .filter(Boolean) as Property[],
+    includes: node.heritageClauses
+      ? node.heritageClauses.reduce<string[]>(
+          (result, c) => result.concat(c.types.map(t => t.getText(source))), []
+        )
+      : [],
   }
 }
 
-function transformTypeAliasDeclaration (source: ts.SourceFile, node: ts.Node): Entity {
+function transformTypeAliasDeclaration (source: ts.SourceFile, node: ts.Node): Entity | void {
   const children = node.getChildren(source)
   const identifier = <ts.Identifier>children.find(c => c.kind === ts.SyntaxKind.Identifier)
   const union = <ts.UnionTypeNode>children.find(c => c.kind === ts.SyntaxKind.UnionType)
