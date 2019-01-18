@@ -41,7 +41,8 @@ const search = promisify(glob)
 run(process.argv[2])
   .then(dot => {
     console.log(dot)
-    spawnSync('dot', ['-Tpng', '-o', process.argv[3]], { input: dot })
+    const { status, stdout, stderr } = spawnSync('dot', ['-Tpng:cairo', '-o', process.argv[3]], { input: dot })
+    console.log(status, stdout.toString(), stderr.toString())
   })
   .catch(console.error)
   .then(() => process.exit())
@@ -121,8 +122,12 @@ function render (entities: Entity[]): string {
   const nodes = entities.map(renderEntity).filter(Boolean).join('\n')
   const edges = entities.map(renderDependencies).filter(Boolean).join('\n')
   return `digraph G {
-    graph [overlap=false, splines=true]
-    node [shape=record, style=filled, fillcolor=gray95]
+    overlap=false
+    splines=true
+
+    bgcolor=transparent
+
+    node [shape=record, style=filled, fillcolor="#FFDD00:#FBB034", gradientangle=270]
     edge [dir=back, arrowtail=empty]
 
     ${nodes}
