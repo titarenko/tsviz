@@ -23,10 +23,17 @@ export interface UnionType {
   types: string[]
 }
 
-export type Entity = Object | Enum | UnionType
+export interface Alias {
+  discriminator: EntityType
+  name: string
+  type: string
+}
+
+export type Entity = Object | Enum | UnionType | Alias
 
 export enum EntityType {
   Object,
   Enum,
-  UnionType
+  UnionType,
+  Alias,
 }

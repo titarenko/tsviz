@@ -53,5 +53,12 @@ function transformTypeAliasDeclaration(source: ts.SourceFile, node: ts.Node): En
     if (types.length !== 0) {
       return { discriminator: EntityType.UnionType, name: identifier.getText(source), types }
     }
+  } else {
+    const type = node as ts.TypeAliasDeclaration
+    return {
+      discriminator: EntityType.Alias,
+      name: identifier.getText(source),
+      type: type.type.getText(source),
+    }
   }
 }
