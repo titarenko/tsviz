@@ -1,53 +1,69 @@
 import { Entity, EntityType, Object, Enum, UnionType } from './types'
 
 export default function write(entities: Entity[]): string {
-  const nodes = entities.map(renderEntity).filter(Boolean).join('\n')
-  const edges = entities.map(renderDependencies).filter(Boolean).join('\n')
+  const writeEntityOfType = type => entities
+    .filter(e => e.discriminator === type)
+    .map(writeEntity)
+    .filter(Boolean)
+    .join('\n')
+  const edges = entities.map(writeDependencies).filter(Boolean).join('\n')
   return `digraph G {
     overlap=false
     splines=true
 
     bgcolor=transparent
+    fontname=monospace
 
-    node [shape=record, style=filled, fillcolor="#FFDD00:#FBB034", gradientangle=270]
+    subgraph O {
+      node [shape=record, style=filled, fillcolor="#FFDD00:#FBB034", gradientangle=270, fontname=monospace]
+      ${writeEntityOfType(EntityType.Object)}
+    }
+
+    subgraph E {
+      node [shape=record, style=filled, fillcolor="#CEF576:#84FB95", gradientangle=270, fontname=monospace]
+      ${writeEntityOfType(EntityType.Enum)}
+    }
+
+    subgraph U {
+      node [shape=record, style=filled, fillcolor="#DE4DAA:#F6D327", gradientangle=270, fontname=monospace]
+      ${writeEntityOfType(EntityType.UnionType)}
+    }
+
     edge [dir=back, arrowtail=empty]
-
-    ${nodes}
-
     ${edges}
   }`
 }
 
-function renderEntity(e: Entity): string | void {
+function writeEntity(e: Entity): string | void {
   switch (e.discriminator) {
-    case EntityType.Object: return renderObject(e as Object)
-    case EntityType.Enum: return renderEnum(e as Enum)
-    case EntityType.UnionType: return renderUnionType(e as UnionType)
+    case EntityType.Object: return writeObject(e as Object)
+    case EntityType.Enum: return writeEnum(e as Enum)
+    case EntityType.UnionType: return writeUnionType(e as UnionType)
   }
 }
 
-function renderObject(e: Object): string {
+function writeObject(e: Object): string {
   const properties = e.properties.map(p => {
     const body = `${p.name}: ${p.type}`
     return p.nullable
       ? `- ${body}`
       : `+ ${body}`
-  }).join('\\n')
-  return `${e.name}[label = "{${e.name}|${properties}}"]`
+  }).join('\\l')
+  return `${e.name}[label = "{${e.name}|${properties}\\l}"]`
 }
 
-function renderEnum(e: Enum): string {
-  return `${e.name}[label = "{${e.name}:\\n${e.values.join('\\n')}}"]`
+function writeEnum(e: Enum): string {
+  return `${e.name}[label = "{${e.name}:\\l${e.values.join('\\l')}}"]`
 }
 
-function renderUnionType(e: UnionType): string {
-  return `${e.name}[label = "{${e.name}\\n= ${e.types.join('\\n\\| ')}}"]`
+function writeUnionType(e: UnionType): string {
+  return `${e.name}[label = "{${e.name}\\l= ${e.types.join('\\l\\| ')}}"]`
 }
 
-function renderDependencies(e: Entity): string | void {
+function writeDependencies(e: Entity): string | void {
   switch (e.discriminator) {
-    case EntityType.Object: return renderObjectDependencies(e as Object)
-    case EntityType.UnionType: return renderUnionTypeDependencies(e as UnionType)
+    case EntityType.Object: return writeObjectDependencies(e as Object)
+    case EntityType.UnionType: return writeUnionTypeDependencies(e as UnionType)
   }
 }
 
@@ -60,7 +76,7 @@ const primitiveTypes = [
   'Boolean[]',
 ]
 
-function renderObjectDependencies(e: Object): string {
+function writeObjectDependencies(e: Object): string {
   const inheritance = e.includes.map(i => `${i}->${e.name}`).join('\n')
   const aggregation = e.properties
     .filter(p => !primitiveTypes.includes(p.type))
@@ -71,7 +87,7 @@ function renderObjectDependencies(e: Object): string {
   return inheritance + aggregation
 }
 
-function renderUnionTypeDependencies(e: UnionType): string {
+function writeUnionTypeDependencies(e: UnionType): string {
   return e.types
     .filter(t => !primitiveTypes.includes(t))
     .reduce(unique, [])
