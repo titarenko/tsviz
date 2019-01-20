@@ -4,12 +4,12 @@ Tool to visualize your TypeScript source code using UML+ diagrams.
 
 ## Usage
 
-`npm start -- <pattern> <output>`
+`npm start -- <pattern1> <pattern2> ... <patternN> <output>`
 
 where:
 
-- `pattern` is glob patter to `ts` files to be parsed and visualized
-- `output` path to `png` image with visualization
+- `patternX` is glob pattern of path(s) to `ts` files to be parsed and visualized (for example, `~/my-awesome-project/**/*.ts`)
+- `output` is path to `png` image with visualization (for example, `~/my-awesome-project/diagram.png`)
 
 ## Status
 
