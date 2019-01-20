@@ -4,7 +4,9 @@ Tool to visualize your TypeScript source code using UML+ diagrams.
 
 ## Status
 
-WIP
+Alpha: potentially usable, but is not considered as final.
+
+![example](example.png)
 
 ## License
 
