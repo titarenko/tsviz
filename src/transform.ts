@@ -42,6 +42,7 @@ function transformTypeAliasDeclaration(source: ts.SourceFile, node: ts.Node): En
   const children = node.getChildren(source)
   const identifier = children.find(c => c.kind === ts.SyntaxKind.Identifier) as ts.Identifier
   const union = children.find(c => c.kind === ts.SyntaxKind.UnionType) as ts.UnionTypeNode
+
   if (union) {
     const values = union.types
       .filter(c => c.kind === ts.SyntaxKind.LiteralType)

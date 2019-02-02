@@ -4,6 +4,7 @@
   "description": "Typescript source code visualization using UML+ diagrams",
   "main": "index.js",
   "dependencies": {
+    "escape-html": "^1.0.3",
     "glob": "^7.1.3",
     "typescript": "^3.2.2"
   },

@@ -1,5 +1,7 @@
 import { Entity, EntityType, Object, Enum, UnionType, Alias } from './types'
 
+const escapeHtml = require('escape-html')
+
 export default function write(entities: Entity[]): string {
   const writeEntityOfType = type => entities
     .filter(e => e.discriminator === type)
@@ -51,7 +53,7 @@ function writeEntity(e: Entity): string | void {
 
 function writeObject(e: Object): string {
   const properties = e.properties.map(p => {
-    const body = `${p.name}: ${p.type}`
+    const body = `${p.name}: ${escape(p.type)}`
     return p.nullable
       ? `- ${body}`
       : `+ ${body}`
@@ -62,8 +64,8 @@ function writeObject(e: Object): string {
         <td colspan="2"><b>${e.name}</b></td>
       </tr>
       ${e.properties.map(p => `<tr>
-        <td align="left"><font color="${p.nullable ? '#555555' : '#000000}'}">${p.name}</font></td>
-        <td align="left" port="${p.name}"><font color="${p.nullable ? '#555555' : '#000000}'}">${p.type}</font></td>
+        <td align="left"><font color="${p.nullable ? '#555555' : '#000000'}">${p.name}</font></td>
+        <td align="left" port="${p.name}"><font color="${p.nullable ? '#555555' : '#000000'}">${escape(p.type)}</font></td>
       </tr>`).join('\n')}
     </table>
   >]`
@@ -84,7 +86,7 @@ function writeUnionType(e: UnionType): string {
     <table border="1" cellborder="0" cellspacing="0">
       <tr><td><i>&laquo;union&raquo;</i></td></tr>
       <tr><td><b>${e.name}</b></td></tr>
-      ${e.types.map(t => `<tr><td align="left" port="${singularType(t)}">${t}</td></tr>`).join('\n')}
+      ${e.types.map(t => `<tr><td align="left" port="${escape(singular(t))}">${t}</td></tr>`).join('\n')}
     </table>
   >]`
 }
@@ -94,7 +96,7 @@ function writeAlias(e: Alias): string {
     <table border="1" cellborder="0" cellspacing="0">
       <tr><td><i>&laquo;alias&raquo;</i></td></tr>
       <tr><td><b>${e.name}</b></td></tr>
-      <tr><td align="left">${e.type}</td></tr>
+      <tr><td align="left">${escape(e.type)}</td></tr>
     </table>
   >]`
 }
@@ -113,6 +115,10 @@ const primitiveTypes = [
   'number[]',
   'boolean',
   'boolean[]',
+  'object',
+  'object[]',
+  'Function',
+  'Function[]',
 ]
 
 function writeObjectDependencies(e: Object): string {
@@ -121,7 +127,7 @@ function writeObjectDependencies(e: Object): string {
     .join('\n')
   const aggregation = e.properties
     .filter(p => !primitiveTypes.includes(p.type))
-    .map(p => `${e.name}:${p.name}->${singularType(p.type)}[style=${p.nullable ? 'dashed' : 'solid'} color="${p.nullable ? '#555555' : '#000000}'}" arrowtail=odiamond]`)
+    .map(p => `${e.name}:${p.name}->${quote(escape(singular(p.type)))}[style=${p.nullable ? 'dashed' : 'solid'} color="${p.nullable ? '#555555' : '#000000'}" arrowtail=odiamond]`)
     .join('\n')
   return `${inheritance}\n${aggregation}`
 }
@@ -129,10 +135,18 @@ function writeObjectDependencies(e: Object): string {
 function writeUnionTypeDependencies(e: UnionType): string {
   return e.types
     .filter(t => !primitiveTypes.includes(t))
-    .map(t => `${e.name}:${singularType(t)}->${singularType(t)}[arrowtail=icurve]`)
+    .map(t => `${e.name}:${escape(singular(t))}->${escape(singular(t))}[arrowtail=icurve]`)
     .join('\n')
 }
 
-function singularType (type) {
+function singular (type) {
   return type.replace(/\[\]/g, '')
+}
+
+function quote (string) {
+  return `"${string}"`
+}
+
+function escape (original) {
+  return escapeHtml(original)
 }
